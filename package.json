@@ -1,0 +1,23 @@
+{
+  "name": "greedy-tech",
+  "version": "1.0.0",
+  "description": "TikTok-style app for tech articles",
+  "scripts": {
+    "start:backend": "cd backend && npm run dev",
+    "start:mobile": "cd mobile && npm start",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:mobile\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tech",
+    "articles",
+    "mobile",
+    "react-native",
+    "fastify"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 
