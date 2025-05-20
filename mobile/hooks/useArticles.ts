@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchArticles, fetchArticleById, fetchArticlesByCategory, Article } from '../api/articles';
+import { fetchArticles, fetchArticleById, fetchArticlesByCategory, fetchCategories, Article } from '../api/articles';
 
 // Hook for fetching all articles
 export const useArticles = () => {
@@ -25,7 +25,7 @@ export const useArticles = () => {
     getArticles();
   }, []);
 
-  return { articles, loading, error };
+  return { articles, loading, error, setArticles, setLoading, setError };
 };
 
 // Hook for fetching a single article by ID
@@ -84,4 +84,31 @@ export const useArticlesByCategory = (category: string) => {
   }, [category]);
 
   return { articles, loading, error };
+};
+
+// Hook for fetching all available categories
+export const useCategories = () => {
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getCategories = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchCategories();
+        setCategories(data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch categories');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getCategories();
+  }, []);
+
+  return { categories, loading, error };
 }; 

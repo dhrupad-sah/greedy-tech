@@ -22,7 +22,7 @@ initializeDatabase()
 // Register plugins
 fastify.register(require('@fastify/cors'), {
   origin: true, // Allow all origins for development
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
 });
 
 fastify.register(require('@fastify/swagger'), {
@@ -44,6 +44,7 @@ fastify.register(require('@fastify/swagger'), {
 // Register routes
 fastify.register(require('./routes/articles'), { prefix: '/api/articles' });
 fastify.register(require('./routes/auth'), { prefix: '/api/auth' });
+fastify.register(require('./routes/rss'), { prefix: '/api/rss' });
 
 // Health check endpoint
 fastify.get('/health', async () => {

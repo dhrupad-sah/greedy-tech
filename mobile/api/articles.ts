@@ -7,8 +7,12 @@ export interface Article {
   title: string;
   content: string;
   thumbnail: string;
-  createdAt: string;
   category: string;
+  sourceName: string | null;
+  originalUrl: string | null;
+  pubDate: string | null;
+  consumed: boolean;
+  createdAt: string;
 }
 
 // Function to fetch all articles
@@ -40,6 +44,29 @@ export const fetchArticlesByCategory = async (category: string): Promise<Article
     return response.data;
   } catch (error) {
     console.error(`Error fetching articles in category ${category}:`, error);
+    return [];
+  }
+};
+
+// Function to fetch unconsumed articles
+export const fetchUnconsumedArticles = async (): Promise<Article[]> => {
+  try {
+    const response = await axios.get(`${API_URL}/api/articles/status/unconsumed`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching unconsumed articles:', error);
+    return [];
+  }
+};
+
+// Function to get all unique categories from articles
+export const fetchCategories = async (): Promise<string[]> => {
+  try {
+    const articles = await fetchArticles();
+    const categories = [...new Set(articles.map(article => article.category))];
+    return categories;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
     return [];
   }
 }; 

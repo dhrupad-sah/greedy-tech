@@ -1,25 +1,36 @@
-import React, { useState } from 'react';
-import { StyleSheet, FlatList, ActivityIndicator, Text, View, Dimensions, ViewToken, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, FlatList, ActivityIndicator, Text, View, Dimensions, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { useArticles } from '../../hooks/useArticles';
 import ArticleCard from '../../components/ArticleCard';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
+import { fetchArticles } from '../../api/articles';
 
 // Get screen dimensions
 const { height, width } = Dimensions.get('window');
 
 export default function FeedScreen() {
-  const { articles, loading, error } = useArticles();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const { articles, loading, error, setArticles, setLoading, setError } = useArticles();
   const { isAuthenticated } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Handle viewable items change
-  const onViewableItemsChanged = React.useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index || 0);
+  // Refresh articles
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      setLoading(true);
+      const data = await fetchArticles();
+      setArticles(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to refresh articles');
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  }).current;
+  }, [setArticles, setError, setLoading]);
 
   // Navigate to categories
   const navigateToCategories = () => {
@@ -56,7 +67,7 @@ export default function FeedScreen() {
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
-          onPress={() => router.replace('/')}
+          onPress={handleRefresh}
         >
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
@@ -69,6 +80,20 @@ export default function FeedScreen() {
       <StatusBar barStyle="dark-content" />
       
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.refreshButton}
+          onPress={handleRefresh}
+          activeOpacity={0.8}
+          disabled={refreshing}
+        >
+          <Ionicons 
+            name={refreshing ? "sync" : "refresh"} 
+            size={24} 
+            color="#555" 
+            style={refreshing ? styles.rotating : undefined}
+          />
+        </TouchableOpacity>
+        
         <Text style={styles.headerTitle}>Greedy Tech</Text>
       </View>
       
@@ -85,23 +110,11 @@ export default function FeedScreen() {
         snapToInterval={height - 60} // account for header
         snapToAlignment="start"
         decelerationRate="fast"
-        onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         contentContainerStyle={{ paddingBottom: 20 }}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
       />
-
-      {/* Progress Indicator */}
-      <View style={styles.progressContainer}>
-        {articles.map((_, index) => (
-          <View 
-            key={index} 
-            style={[
-              styles.progressDot, 
-              index === currentIndex ? styles.progressDotActive : null
-            ]} 
-          />
-        ))}
-      </View>
 
       {/* Floating Categories Button */}
       <TouchableOpacity 
@@ -133,13 +146,24 @@ const styles = StyleSheet.create({
     height: 60,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+  },
+  refreshButton: {
+    position: 'absolute',
+    left: 16,
+    padding: 8,
+    zIndex: 10,
+  },
+  rotating: {
+    transform: [{ rotate: '45deg' }],
   },
   centered: {
     flex: 1,
@@ -207,25 +231,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
-  },
-  progressContainer: {
-    position: 'absolute',
-    top: 70,
-    left: 20,
-    flexDirection: 'row',
-    zIndex: 100,
-  },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    marginRight: 6,
-  },
-  progressDotActive: {
-    backgroundColor: '#0066cc',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
+  }
 });

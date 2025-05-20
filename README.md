@@ -1,11 +1,89 @@
-# Greedy Tech App
+# Greedy Tech Project
 
-A TikTok-style mobile application for short-form tech articles.
+Greedy Tech is a TikTok-style mobile app for short tech articles.
 
 ## Project Structure
 
-- **backend/** - Fastify API server with Supabase integration
-- **mobile/** - Expo mobile app
+The project is structured as a monorepo with two main components:
+
+- **Backend**: Fastify + Supabase REST API
+- **Mobile**: Expo + React Native app
+
+## Backend
+
+The backend provides a RESTful API for articles and authentication. It includes RSS feed integration to automatically fetch and store tech articles from various sources.
+
+### RSS Feed Implementation (v1)
+
+The current implementation focuses on fetching articles from The Verge and Wired, with a plan to support additional sources in the future.
+
+#### How It Works
+
+1. RSS sources are stored in the `rss_sources` table, which includes URLs and metadata for each feed
+2. The system fetches articles from these sources and stores them in the `articles` table
+3. Each article has a `consumed` flag (default: false) to track processing status
+4. Unconsumed articles can be later processed by an LLM to generate custom content
+
+#### Key Components
+
+- `rssService.js`: Handles fetching and processing RSS feeds
+- `rssController.js`: Provides API endpoints for RSS operations
+- `fetchRssFeeds.js`: Script that can be run manually or scheduled for automatic fetching
+
+#### API Endpoints
+
+- `GET /api/rss/sources`: List all RSS sources
+- `POST /api/rss/sources`: Add a new RSS source
+- `PUT /api/rss/sources/:id`: Update an RSS source
+- `DELETE /api/rss/sources/:id`: Delete an RSS source
+- `GET /api/rss/fetch`: Manually trigger fetching from all active RSS sources
+
+- `GET /api/articles`: Get all articles
+- `GET /api/articles/:id`: Get article by ID
+- `GET /api/articles/category/:category`: Get articles by category
+- `GET /api/articles/status/unconsumed`: Get all unconsumed articles
+- `PATCH /api/articles/:id/consume`: Mark an article as consumed
+
+### Running the Backend
+
+1. Install dependencies:
+   ```bash
+   cd backend
+   npm install
+   ```
+
+2. Create a `.env` file with the following variables:
+   ```
+   DB_HOST=localhost
+   DB_USER=postgres
+   DB_PASSWORD=your_password
+   DB_NAME=greedytech
+   PORT=3000
+   ```
+
+3. Initialize the database:
+   ```bash
+   npm run init-db
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Fetch RSS feeds:
+   ```bash
+   npm run fetch-rss
+   ```
+
+## Next Steps (v2)
+
+The next version will:
+
+1. Implement LLM processing for unconsumed articles
+2. Generate custom content from the articles
+3. Store the generated content in the `generated_content` table
+4. Update the mobile app to display the generated content
 
 ## Tech Stack
 

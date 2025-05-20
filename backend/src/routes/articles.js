@@ -14,8 +14,12 @@ module.exports = async function (fastify, opts) {
               title: { type: 'string' },
               content: { type: 'string' },
               thumbnail: { type: 'string' },
-              createdAt: { type: 'string', format: 'date-time' },
-              category: { type: 'string' }
+              category: { type: 'string' },
+              sourceName: { type: 'string', nullable: true },
+              originalUrl: { type: 'string', nullable: true },
+              pubDate: { type: 'string', format: 'date-time', nullable: true },
+              consumed: { type: 'boolean' },
+              createdAt: { type: 'string', format: 'date-time' }
             }
           }
         }
@@ -42,8 +46,12 @@ module.exports = async function (fastify, opts) {
             title: { type: 'string' },
             content: { type: 'string' },
             thumbnail: { type: 'string' },
-            createdAt: { type: 'string', format: 'date-time' },
-            category: { type: 'string' }
+            category: { type: 'string' },
+            sourceName: { type: 'string', nullable: true },
+            originalUrl: { type: 'string', nullable: true },
+            pubDate: { type: 'string', format: 'date-time', nullable: true },
+            consumed: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' }
           }
         }
       }
@@ -71,13 +79,67 @@ module.exports = async function (fastify, opts) {
               title: { type: 'string' },
               content: { type: 'string' },
               thumbnail: { type: 'string' },
-              createdAt: { type: 'string', format: 'date-time' },
-              category: { type: 'string' }
+              category: { type: 'string' },
+              sourceName: { type: 'string', nullable: true },
+              originalUrl: { type: 'string', nullable: true },
+              pubDate: { type: 'string', format: 'date-time', nullable: true },
+              consumed: { type: 'boolean' },
+              createdAt: { type: 'string', format: 'date-time' }
             }
           }
         }
       }
     },
     handler: articlesController.getArticlesByCategory
+  });
+
+  // Get unconsumed articles
+  fastify.get('/status/unconsumed', {
+    schema: {
+      response: {
+        200: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+              content: { type: 'string' },
+              thumbnail: { type: 'string' },
+              category: { type: 'string' },
+              sourceName: { type: 'string', nullable: true },
+              originalUrl: { type: 'string', nullable: true },
+              pubDate: { type: 'string', format: 'date-time', nullable: true },
+              consumed: { type: 'boolean' },
+              createdAt: { type: 'string', format: 'date-time' }
+            }
+          }
+        }
+      }
+    },
+    handler: articlesController.getUnconsumedArticles
+  });
+
+  // Mark article as consumed
+  fastify.patch('/:id/consume', {
+    schema: {
+      params: {
+        type: 'object',
+        required: ['id'],
+        properties: {
+          id: { type: 'string' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' }
+          }
+        }
+      }
+    },
+    handler: articlesController.markArticleAsConsumed
   });
 }; 
