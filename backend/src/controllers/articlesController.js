@@ -1,73 +1,68 @@
-const articleService = require('../services/articleService');
+const db = require('../config/db');
 
-// Mock data for initial development
-const mockArticles = [
-  {
-    id: '1',
-    title: 'Understanding React Native Architecture',
-    content: 'React Native uses a bridge to communicate between JavaScript and native components. This architecture allows for code reuse across platforms while maintaining native performance.',
-    thumbnail: 'https://picsum.photos/300/200',
-    createdAt: new Date().toISOString(),
-    category: 'mobile'
-  },
-  {
-    id: '2',
-    title: 'Introduction to TypeScript',
-    content: 'TypeScript is a superset of JavaScript that adds static typing to the language. It helps catch errors early in the development process and improves code quality.',
-    thumbnail: 'https://picsum.photos/300/200',
-    createdAt: new Date().toISOString(),
-    category: 'programming'
-  },
-  {
-    id: '3',
-    title: 'Containerization with Docker',
-    content: 'Docker allows developers to package applications into containers—standardized executable components that combine application source code with the OS libraries and dependencies required to run that code in any environment.',
-    thumbnail: 'https://picsum.photos/300/200',
-    createdAt: new Date().toISOString(),
-    category: 'devops'
-  }
-];
-
-exports.getAllArticles = async (request, reply) => {
+// Get all articles
+const getAllArticles = async (req, reply) => {
   try {
-    // Later this will be replaced with actual database calls
-    // const articles = await articleService.getAllArticles();
-    const articles = mockArticles;
-    return articles;
+    const result = await db.query(
+      'SELECT id, title, content, thumbnail, category, created_at as "createdAt" FROM articles ORDER BY created_at DESC'
+    );
+    
+    return result.rows.map(formatArticle);
   } catch (error) {
-    request.log.error(error);
-    return reply.code(500).send({ error: 'Internal Server Error' });
+    console.error('Error getting all articles:', error);
+    reply.code(500).send({ error: 'Failed to fetch articles' });
   }
 };
 
-exports.getArticleById = async (request, reply) => {
+// Get article by ID
+const getArticleById = async (req, reply) => {
   try {
-    const { id } = request.params;
-    // Later this will be replaced with actual database calls
-    // const article = await articleService.getArticleById(id);
-    const article = mockArticles.find(a => a.id === id);
+    const { id } = req.params;
     
-    if (!article) {
+    const result = await db.query(
+      'SELECT id, title, content, thumbnail, category, created_at as "createdAt" FROM articles WHERE id = $1',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
       return reply.code(404).send({ error: 'Article not found' });
     }
     
-    return article;
+    return formatArticle(result.rows[0]);
   } catch (error) {
-    request.log.error(error);
-    return reply.code(500).send({ error: 'Internal Server Error' });
+    console.error(`Error getting article by ID ${req.params.id}:`, error);
+    reply.code(500).send({ error: 'Failed to fetch article' });
   }
 };
 
-exports.getArticlesByCategory = async (request, reply) => {
+// Get articles by category
+const getArticlesByCategory = async (req, reply) => {
   try {
-    const { category } = request.params;
-    // Later this will be replaced with actual database calls
-    // const articles = await articleService.getArticlesByCategory(category);
-    const articles = mockArticles.filter(a => a.category === category);
+    const { category } = req.params;
     
-    return articles;
+    const result = await db.query(
+      'SELECT id, title, content, thumbnail, category, created_at as "createdAt" FROM articles WHERE category = $1 ORDER BY created_at DESC',
+      [category]
+    );
+    
+    return result.rows.map(formatArticle);
   } catch (error) {
-    request.log.error(error);
-    return reply.code(500).send({ error: 'Internal Server Error' });
+    console.error(`Error getting articles by category ${req.params.category}:`, error);
+    reply.code(500).send({ error: 'Failed to fetch articles by category' });
   }
+};
+
+// Helper to format article data
+const formatArticle = (article) => {
+  return {
+    ...article,
+    id: article.id.toString(),
+    createdAt: article.createdAt.toISOString()
+  };
+};
+
+module.exports = {
+  getAllArticles,
+  getArticleById,
+  getArticlesByCategory
 }; 

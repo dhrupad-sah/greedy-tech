@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -14,6 +14,13 @@ import { useAuth } from '../context/AuthContext';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+
+  // Check authentication and redirect if needed
+  useEffect(() => {
+    if (!user) {
+      router.replace('/auth/login');
+    }
+  }, [user]);
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -52,10 +59,16 @@ export default function ProfileScreen() {
     router.back();
   };
 
+  // Show loading or nothing while checking auth
   if (!user) {
-    // Redirect to login if not authenticated
-    router.replace('/auth/login');
-    return null;
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <View style={styles.loadingContainer}>
+          {/* Nothing to show while redirecting */}
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -140,6 +153,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',

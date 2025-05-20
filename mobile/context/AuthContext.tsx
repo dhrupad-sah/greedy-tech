@@ -15,7 +15,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  sendOTP: (email: string) => Promise<boolean>;
+  sendOTP: (email: string) => Promise<{ success: boolean; message: string; devOtp?: string }>;
   verifyOTP: (email: string, otp: string) => Promise<boolean>;
   logout: () => Promise<void>;
 }
@@ -25,7 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   isAuthenticated: false,
-  sendOTP: async () => false,
+  sendOTP: async () => ({ success: false, message: 'Not implemented' }),
   verifyOTP: async () => false,
   logout: async () => {},
 });
@@ -58,25 +58,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Send OTP to email
-  const sendOTP = async (email: string): Promise<boolean> => {
+  const sendOTP = async (email: string): Promise<{ success: boolean; message: string; devOtp?: string }> => {
     try {
       const response = await axios.post(`${API_URL}/api/auth/send-otp`, { email });
       
       if (response.data.success) {
-        console.log('OTP sent successfully');
-        
-        // For development only - log the OTP
+        // Check if we're in development mode with OTP in response
         if (response.data.devOtp) {
           console.log(`Development OTP: ${response.data.devOtp}`);
+          
+          return { 
+            success: true, 
+            message: 'For development: Use this OTP to login', 
+            devOtp: response.data.devOtp 
+          };
         }
         
-        return true;
+        return { 
+          success: true, 
+          message: 'OTP sent to your email' 
+        };
       }
       
-      return false;
+      return { 
+        success: false, 
+        message: response.data.error || 'Failed to send OTP' 
+      };
     } catch (error) {
       console.error('Failed to send OTP', error);
-      return false;
+      
+      if (axios.isAxiosError(error) && error.response) {
+        return { 
+          success: false, 
+          message: error.response.data.error || 'Server error' 
+        };
+      }
+      
+      return { 
+        success: false, 
+        message: 'Network error' 
+      };
     }
   };
 

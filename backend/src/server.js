@@ -1,9 +1,23 @@
 const fastify = require('fastify')({ logger: true });
 const path = require('path');
 const dotenv = require('dotenv');
+const { initializeDatabase } = require('./models/dbInit');
 
 // Load environment variables
 dotenv.config();
+
+// Initialize database
+initializeDatabase()
+  .then((success) => {
+    if (success) {
+      console.log('Database initialized successfully');
+    } else {
+      console.error('Failed to initialize database');
+    }
+  })
+  .catch((err) => {
+    console.error('Error initializing database:', err);
+  });
 
 // Register plugins
 fastify.register(require('@fastify/cors'), {

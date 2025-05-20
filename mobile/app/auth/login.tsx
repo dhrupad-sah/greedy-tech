@@ -24,6 +24,7 @@ export default function LoginScreen() {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
   const { sendOTP, verifyOTP } = useAuth();
 
   // Validate email
@@ -45,12 +46,22 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      const success = await sendOTP(email);
-      if (success) {
+      const result = await sendOTP(email);
+      
+      if (result.success) {
         setOtpSent(true);
-        Alert.alert('OTP Sent', `A verification code has been sent to ${email}`);
+        
+        // If we're in dev mode and have a dev OTP, save it
+        if (result.devOtp) {
+          setDevOtp(result.devOtp);
+          setOtp(result.devOtp); // Automatically fill the OTP field in dev mode
+        } else {
+          setDevOtp(null);
+        }
+        
+        Alert.alert('OTP Sent', result.message);
       } else {
-        Alert.alert('Error', 'Failed to send verification code. Please try again.');
+        Alert.alert('Error', result.message);
       }
     } catch (error) {
       console.error(error);
@@ -88,6 +99,7 @@ export default function LoginScreen() {
   const handleGoBack = () => {
     setOtpSent(false);
     setOtp('');
+    setDevOtp(null);
   };
 
   return (
@@ -121,6 +133,13 @@ export default function LoginScreen() {
           {otpSent ? (
             // OTP verification view
             <View style={styles.formContainer}>
+              {devOtp && (
+                <View style={styles.devModeContainer}>
+                  <Text style={styles.devModeText}>Development Mode</Text>
+                  <Text style={styles.devOtpText}>Your OTP: {devOtp}</Text>
+                </View>
+              )}
+              
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
@@ -229,6 +248,27 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     marginBottom: 30,
+  },
+  devModeContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  devModeText: {
+    color: '#666',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  devOtpText: {
+    color: '#007AFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    letterSpacing: 2,
   },
   inputContainer: {
     marginBottom: 20,

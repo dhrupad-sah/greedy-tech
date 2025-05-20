@@ -1,0 +1,32 @@
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  last_login TIMESTAMP WITH TIME ZONE
+);
+
+-- OTPs table for authentication
+CREATE TABLE IF NOT EXISTS otps (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  otp VARCHAR(6) NOT NULL,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (email) REFERENCES users(email) ON DELETE CASCADE
+);
+
+-- Articles table 
+CREATE TABLE IF NOT EXISTS articles (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  thumbnail TEXT NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_otps_email ON otps(email);
+CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category); 
