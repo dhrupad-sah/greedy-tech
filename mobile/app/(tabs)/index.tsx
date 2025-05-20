@@ -4,6 +4,7 @@ import { useArticles } from '../../hooks/useArticles';
 import ArticleCard from '../../components/ArticleCard';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
 
 // Get screen dimensions
 const { height, width } = Dimensions.get('window');
@@ -11,6 +12,7 @@ const { height, width } = Dimensions.get('window');
 export default function FeedScreen() {
   const { articles, loading, error } = useArticles();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { isAuthenticated } = useAuth();
 
   // Handle viewable items change
   const onViewableItemsChanged = React.useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -22,6 +24,15 @@ export default function FeedScreen() {
   // Navigate to categories
   const navigateToCategories = () => {
     router.push('/explore');
+  };
+
+  // Navigate to profile or login
+  const navigateToProfile = () => {
+    if (isAuthenticated) {
+      router.push('/profile');
+    } else {
+      router.push('/auth/login');
+    }
   };
 
   // FlatList view config
@@ -100,6 +111,15 @@ export default function FeedScreen() {
       >
         <Ionicons name="grid" size={24} color="#555" />
       </TouchableOpacity>
+
+      {/* Floating Profile Button */}
+      <TouchableOpacity 
+        style={styles.profileButton}
+        onPress={navigateToProfile}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="person-circle-outline" size={24} color="#555" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -152,6 +172,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     top: 70,
+    backgroundColor: '#f2f2f2',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  profileButton: {
+    position: 'absolute',
+    right: 20,
+    top: 130, // positioned below the categories button
     backgroundColor: '#f2f2f2',
     width: 50,
     height: 50,

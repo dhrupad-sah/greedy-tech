@@ -29,6 +29,7 @@ fastify.register(require('@fastify/swagger'), {
 
 // Register routes
 fastify.register(require('./routes/articles'), { prefix: '/api/articles' });
+fastify.register(require('./routes/auth'), { prefix: '/api/auth' });
 
 // Health check endpoint
 fastify.get('/health', async () => {
