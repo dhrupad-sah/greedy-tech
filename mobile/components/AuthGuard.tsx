@@ -6,11 +6,20 @@ import { useAuth } from '../context/AuthContext';
 // Protected routes (need authentication)
 const PROTECTED_ROUTES = [
   'profile',
+  '(tabs)', // Main feed and tabs
+  'article',
+  'category',
+  'explore'
 ];
 
-// Auth screens (should redirect to home if already authenticated)
+// Auth screens (accessible without authentication)
 const AUTH_ROUTES = [
-  'auth/login',
+  'auth/login'
+];
+
+// Public routes (accessible without authentication)
+const PUBLIC_ROUTES = [
+  // Add any public routes here that don't need authentication
 ];
 
 interface AuthGuardProps {
@@ -25,19 +34,22 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === 'auth';
-    const segment = segments.join('/');
+    // Get the current path
+    const currentPath = segments.join('/');
     
-    // If the user is authenticated and trying to access auth screens,
-    // redirect to home
-    if (isAuthenticated && AUTH_ROUTES.some(route => segment.includes(route))) {
+    // Check if the current path is an auth path (like login)
+    const isAuthRoute = AUTH_ROUTES.some(route => currentPath.includes(route));
+    
+    if (isAuthenticated && isAuthRoute) {
+      // If user is authenticated and trying to access auth screens (like login),
+      // redirect to home/feed
       router.replace('/');
       return;
     }
     
-    // If user is not authenticated and trying to access protected routes,
-    // redirect to login
-    if (!isAuthenticated && PROTECTED_ROUTES.some(route => segment.includes(route))) {
+    if (!isAuthenticated && !isAuthRoute) {
+      // If user is not authenticated and trying to access any non-auth route,
+      // redirect to login
       router.replace('/auth/login');
       return;
     }
